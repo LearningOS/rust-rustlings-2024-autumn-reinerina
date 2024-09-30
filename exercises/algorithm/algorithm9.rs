@@ -1,8 +1,7 @@
 /*
-	heap
-	This question requires you to implement a binary heap function
+    heap
+    This question requires you to implement a binary heap function
 */
-// I AM NOT DONE
 
 use std::cmp::Ord;
 use std::default::Default;
@@ -36,8 +35,20 @@ where
         self.len() == 0
     }
 
-    pub fn add(&mut self, value: T) {
-        //TODO
+    pub fn add(&mut self, value: T)
+    where
+        T: Copy,
+    {
+        self.items.push(value);
+        self.count += 1;
+        let mut index = self.count;
+        while self.parent_idx(index) != 0
+            && (self.comparator)(&value, &self.items[self.parent_idx(index)])
+        {
+            let parent = self.parent_idx(index);
+            self.items.swap(index, parent);
+            index = self.parent_idx(index);
+        }
     }
 
     fn parent_idx(&self, idx: usize) -> usize {
@@ -57,8 +68,21 @@ where
     }
 
     fn smallest_child_idx(&self, idx: usize) -> usize {
-        //TODO
-		0
+        if !self.children_present(idx) {
+            0
+        } else {
+            if self.right_child_idx(idx) > self.count {
+                self.left_child_idx(idx)
+            } else {
+                let left_child_idx = self.left_child_idx(idx);
+                let right_child_idx = self.right_child_idx(idx);
+                if (self.comparator)(&self.items[left_child_idx], &self.items[right_child_idx]) {
+                    left_child_idx
+                } else {
+                    right_child_idx
+                }
+            }
+        }
     }
 }
 
@@ -79,13 +103,28 @@ where
 
 impl<T> Iterator for Heap<T>
 where
-    T: Default,
+    T: Default + Copy,
 {
     type Item = T;
 
     fn next(&mut self) -> Option<T> {
-        //TODO
-		None
+        if self.count == 0 {
+            None
+        } else {
+            let top = self.items[1];
+            self.items.swap(1, self.count);
+            self.count -= 1;
+            let mut parent = 1;
+            let mut child_idx = self.smallest_child_idx(1);
+            while child_idx != 0 && (self.comparator)(&self.items[child_idx], &self.items[parent]) {
+                // the child must be bigger than parent
+                self.items.swap(parent, child_idx);
+                parent = child_idx;
+                child_idx = self.smallest_child_idx(parent);
+            }
+            self.items.pop();
+            Some(top)
+        }
     }
 }
 
